@@ -7,11 +7,6 @@ domain=""
 accounts_list=$(zmaccts | grep "@$domain" | cut -d" " -f1)
 backup_folder="/zimbra_backup"
 
-# COLORS
-
-GREEN="\\033[1;32m"
-RED="\\033[1;31m"
-NORMAL="\\033[0;39m"
 ### FUNCTIONS
 
 function print_usage
