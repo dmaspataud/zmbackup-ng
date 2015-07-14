@@ -16,7 +16,7 @@ function print_usage
   echo "-h :  Display help / command usage."
   echo "-m :  Manual backup."
   echo "-af :  Manual backup with force-overwrite. Use with caution."
-  echo "-r :  Restore the specified account mailbox."
+  echo "-r :  Enter restoration menu."
   echo -e "-v --version :  Display zmbackup-ng current version.\n"
 }
 
