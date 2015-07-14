@@ -5,7 +5,7 @@ zimbra_user="zimbra"
 version="0.3b"
 domain=""
 accounts_list=$(zmaccts | grep "@$domain" | cut -d" " -f1)
-backup_folder="/zimbra_backup"
+backup_folder="" # No trailing /
 
 ### FUNCTIONS
 
@@ -33,8 +33,10 @@ function manual_backup
     mkdir -p $backup_folder/$(date +%Y-%m-%d)
     check_overwrite
       if [[ $overwrite_yn == "y" ]];then
+        start_time=$SECONDS
         zmmailbox -z -m $backup_target getRestURL '/?fmt=tgz' > $backup_folder/$(date +%Y-%m-%d)/$backup_target.tar.gz
-        echo "[DONE] $backup_target."
+        elapsed_time=$(($SECONDS - $start_time))
+        echo -e "\n[DONE] Backup of $backup_target's mailbox finished in $(($elapsed_time/60)) min $(($elapsed_time%60)) sec."
         exit 0
       elif [[ $overwrite_yn == "n" ]];then
         echo "[ABORT] backup aborted for $backup_target."
@@ -83,15 +85,16 @@ function manual_restore
   read user_choice
     if [[ " $users_backups_list " =~ $user_choice ]];then
       date_backup_list=$(ls $backup_folder/*/$user_choice.tar.gz | sed -e "s/\\$backup_folder\///g" | sed -e "s/\/$user_choice.tar.gz//g" | sort)
-      echo -e "\nBackups for user $user_choice exist at the following dates :\n $date_backup_list\n"
+      echo -e "\nBackups for user $user_choice exist at the following dates :\n$date_backup_list\n"
       echo -e "Please select a date to restore the backup from (YYYY-MM-DD) :"
       echo -n "> "
       read date_choice
       if [[ " $date_backup_list " =~ $date_choice ]];then
-        echo -e "\nThe following restorations are available, please select the one that suits your needs (modify/skip/reset): \n"
+        echo -e "\nThe following restorations are available, please select the one that suits your needs (modify/skip/reset/transfer): \n"
         echo "Modify : restore deleted items, and reset existing mail to backup status (Unread/Read flags will be applied)"
         echo "Skip : Only restore deleted items."
         echo "Reset : [CAUTION] replace the mailbox with the content of the backup. ITEMS WILL BE LOST !"
+        echo "Transfer : [CAUTION] fully restore the backup on an other account."
         echo -n "> "
         read type_choice
         case $type_choice in
@@ -112,6 +115,16 @@ function manual_restore
           reset)
           start_time=$SECONDS
           zmmailbox -z -m $user_choice postRestURL "/?fmt=tgz&resolve=reset" $backup_folder/$date_choice/$user_choice.tar.gz
+          elapsed_time=$(($SECONDS - $start_time))
+          echo -e "\n[DONE] Restoration of $user_choice's mailbox finished in $(($elapsed_time/60)) min $(($elapsed_time%60)) sec."
+          exit 0
+          ;;
+          transfer)
+          echo -e "\nSelect the target account : (account@domain.tld)"
+          echo -n "> "
+          read transfer_account
+          start_time=$SECONDS
+          zmmailbox -z -m $transfer_account postRestURL "/?fmt=tgz&resolve=reset" $backup_folder/$date_choice/$user_choice.tar.gz
           elapsed_time=$(($SECONDS - $start_time))
           echo -e "\n[DONE] Restoration of $user_choice's mailbox finished in $(($elapsed_time/60)) min $(($elapsed_time%60)) sec."
           exit 0
