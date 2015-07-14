@@ -2,7 +2,7 @@
 
 ### VARIABLES
 zimbra_user="zimbra"
-version="0.2"
+version="0.3b"
 domain=""
 accounts_list=$(zmaccts | grep "@$domain" | cut -d" " -f1)
 backup_folder="/zimbra_backup"
@@ -76,9 +76,59 @@ function full_backup
 
 function manual_restore
 {
+  users_backups_list=$(ls $backup_folder/*/ | grep -v "$(ls $backup_folder)" | sed -e "s/.tar.gz//g" | sort | uniq)
   backup_list=$(ls $backup_folder)
-  echo "manual restore - work in progress"
-  echo -e "List of existing backups :\n$backup_list"
+  echo -e "Choose which account you need to restore : $users_backups_list"
+  echo -n "> "
+  read user_choice
+    if [[ " $users_backups_list " =~ $user_choice ]];then
+      date_backup_list=$(ls $backup_folder/*/$user_choice.tar.gz | sed -e "s/\\$backup_folder\///g" | sed -e "s/\/$user_choice.tar.gz//g" | sort)
+      echo -e "\nBackups for user $user_choice exist at the following dates :\n $date_backup_list\n"
+      echo -e "Please select a date to restore the backup from (YYYY-MM-DD) :"
+      echo -n "> "
+      read date_choice
+      if [[ " $date_backup_list " =~ $date_choice ]];then
+        echo -e "\nThe following restorations are available, please select the one that suits your needs (modify/skip/reset): \n"
+        echo "Modify : restore deleted items, and reset existing mail to backup status (Unread/Read flags will be applied)"
+        echo "Skip : Only restore deleted items."
+        echo "Reset : [CAUTION] replace the mailbox with the content of the backup. ITEMS WILL BE LOST !"
+        echo -n "> "
+        read type_choice
+        case $type_choice in
+          modify)
+          start_time=$SECONDS
+          zmmailbox -z -m $user_choice postRestURL "/?fmt=tgz&resolve=modify" $backup_folder/$date_choice/$user_choice.tar.gz
+          elapsed_time=$(($SECONDS - $start_time))
+          echo -e "\n[DONE] Restoration of $user_choice's mailbox finished in $elapsed_time."
+          exit 0
+          ;;
+          skip)
+          start_time=$SECONDS
+          zmmailbox -z -m $user_choice postRestURL "/?fmt=tgz&resolve=skip" $backup_folder/$date_choice/$user_choice.tar.gz
+          elapsed_time=$(($SECONDS - $start_time))
+          echo -e "\n[DONE] Restoration of $user_choice's mailbox finished in $elapsed_time."
+          exit 0
+          ;;
+          reset)
+          start_time=$SECONDS
+          zmmailbox -z -m $user_choice postRestURL "/?fmt=tgz&resolve=reset" $backup_folder/$date_choice/$user_choice.tar.gz
+          elapsed_time=$(($SECONDS - $start_time))
+          echo -e "\n[DONE] Restoration of $user_choice's mailbox finished in $(($elapsed_time/60)) min $(($elapsed_time%60)) sec."
+          exit 0
+          ;;
+          *)
+          echo "[FAILED] Wrong restoration type."
+          exit 1
+          ;;
+        esac
+      else
+        echo "[FAILED] No backups for user $user_choice for the date $date_choice."
+        exit 1
+      fi
+    else
+      echo "[FAILED] No backups for user $user_choice."
+      exit 1
+    fi
 }
 
 function check_overwrite
@@ -92,7 +142,6 @@ function check_overwrite
   fi
 }
 
-### CHECK ARGS // transformer les IF en CASE pour une meilleure lisibilite
 if [[ $USER != "$zimbra_user" ]];then
   echo "This script MUST be run as user $zimbra_user."
   exit 1
