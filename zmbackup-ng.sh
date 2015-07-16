@@ -4,8 +4,14 @@
 zimbra_user="zimbra"
 version="0.3b"
 domain=""
-accounts_list=$(zmaccts | grep "@$domain" | cut -d" " -f1)
 backup_folder="" # No trailing /
+
+if [[ $USER != "$zimbra_user" ]];then
+  echo "This script MUST be run as user $zimbra_user."
+  exit 1
+fi
+
+accounts_list=$(zmaccts | grep "@$domain" | cut -d" " -f1)
 
 ### FUNCTIONS
 
@@ -155,10 +161,6 @@ function check_overwrite
   fi
 }
 
-if [[ $USER != "$zimbra_user" ]];then
-  echo "This script MUST be run as user $zimbra_user."
-  exit 1
-fi
 case $1 in
   -a)
   full_backup
