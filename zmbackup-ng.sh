@@ -3,7 +3,7 @@
 ### VARIABLES
 zimbra_user="zimbra"
 version="0.3b"
-domain=""
+domain="" # Separate the different domains with a pipe
 backup_folder="" # No trailing /
 
 if [[ $USER != "$zimbra_user" ]];then
@@ -11,7 +11,7 @@ if [[ $USER != "$zimbra_user" ]];then
   exit 1
 fi
 
-accounts_list=$(zmaccts | grep "@$domain" | cut -d" " -f1)
+accounts_list=$(zmaccts | grep -E "@$domain" | cut -d" " -f1)
 
 ### FUNCTIONS
 
