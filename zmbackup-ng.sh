@@ -2,9 +2,15 @@
 
 ### VARIABLES
 zimbra_user="zimbra"
-version="0.3b"
+version="0.4"
 domain="" # Separate the different domains with a pipe
 backup_folder="" # No trailing /
+
+### You will need these environment variables if you use the script with crontab
+
+export PATH=/opt/zimbra/bin:/opt/zimbra/postfix/sbin:/opt/zimbra/openldap/bin:/opt/zimbra/snmp/bin:/opt/zimbra/rsync/bin:/opt/zimbra/bdb/bin:/opt/zimbra/openssl/bin:/opt/zimbra/java/bin:/usr/sbin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin
+export PERLLIB=/opt/zimbra/zimbramon/lib/x86_64-linux-thread-multi:/opt/zimbra/zimbramon/lib
+export PERL5LIB=/opt/zimbra/zimbramon/lib/x86_64-linux-thread-multi:/opt/zimbra/zimbramon/lib
 
 if [[ $USER != "$zimbra_user" ]];then
   echo "This script MUST be run as user $zimbra_user."
