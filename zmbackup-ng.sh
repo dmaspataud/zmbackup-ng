@@ -114,14 +114,14 @@ function manual_restore
           start_time=$SECONDS
           zmmailbox -z -m $user_choice postRestURL "/?fmt=tgz&resolve=modify" $backup_folder/$date_choice/$user_choice.tar.gz
           elapsed_time=$(($SECONDS - $start_time))
-          echo -e "\n[DONE] Restoration of $user_choice's mailbox finished in $elapsed_time."
+          echo -e "\n[DONE] Restoration of $user_choice's mailbox finished in $(($elapsed_time/60)) min $(($elapsed_time%60)) sec."
           exit 0
           ;;
           skip)
           start_time=$SECONDS
           zmmailbox -z -m $user_choice postRestURL "/?fmt=tgz&resolve=skip" $backup_folder/$date_choice/$user_choice.tar.gz
           elapsed_time=$(($SECONDS - $start_time))
-          echo -e "\n[DONE] Restoration of $user_choice's mailbox finished in $elapsed_time."
+          echo -e "\n[DONE] Restoration of $user_choice's mailbox finished in $(($elapsed_time/60)) min $(($elapsed_time%60)) sec."
           exit 0
           ;;
           reset)
